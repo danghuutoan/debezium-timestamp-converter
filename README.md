@@ -13,7 +13,9 @@ You can either download the `.jar` file from the [releases](https://github.com/o
 To configure this converter all you need to do is add the following lines to your connector configuration:
 ```json
 "converters": "timestampConverter",
-"timestampConverter.type": "oryanmoshe.kafka.connect.util.TimestampConverter"
+"timestampConverter.type": "ets.kafka.connect.converters.DebeziumTimestampConverter",
+"timestampConverter.debug": "true",
+"timestampConverter.format": "yyyy-MM-dd'T'HH:mm:ss'Z'"
 ```
 
 ### Additional Configuration
