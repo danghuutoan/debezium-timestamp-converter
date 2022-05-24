@@ -3,9 +3,6 @@ package ets.kafka.connect.converters;
 import org.apache.kafka.connect.data.SchemaBuilder;
 import org.apache.kafka.connect.errors.DataException;
 import org.junit.Test;
-
-import ets.kafka.connect.converters.DebeziumTimestampConverter;
-
 import org.junit.Before;
 import org.fest.assertions.Assertions;
 import io.debezium.spi.converter.RelationalColumn;
@@ -124,9 +121,8 @@ public class DebeziumTimestampConverterTests {
         final String format = "yyyy-MM-dd'T'HH:mm:ss'Z'";
         Properties props = new Properties();
 
-        props.put("format.datetime", format);
         props.put("debug", "true");
-        props.put("format", format);
+        props.put("input.formats", "yyyy-MM-dd HH:mm:ss.S;yyyy-MM-dd'T'HH:mm:ss'Z'");
         tsConverter.configure(props);
         tsConverter.converterFor(new BasicColumn("myfield", "db1.table1", "TIMESTAMP"), testRegistration);
         Date actualResult = (Date) testRegistration.converter.convert(input);
@@ -143,7 +139,7 @@ public class DebeziumTimestampConverterTests {
         final String format = "yyyy-MM-dd'T'HH:mm:ss'Z'";
         Properties props = new Properties();
 
-        props.put("format.datetime", format);
+        props.put("input.formats", "yyyy-MM-dd HH:mm:ss.S;yyyy-MM-dd'T'HH:mm:ss'Z'");
         props.put("debug", "true");
         props.put("format", format);
         tsConverter.configure(props);
@@ -152,13 +148,29 @@ public class DebeziumTimestampConverterTests {
     }
 
     @Test(expected = DataException.class)
-    public void testInvalidDatetimeFormat() throws ParseException {
+    public void testInvalidDatetimeFormat(){
         final String input = "2022-05-20T00:35:29Z";
         final DebeziumTimestampConverter tsConverter = new DebeziumTimestampConverter();
         final String format = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
         Properties props = new Properties();
 
         props.put("format.datetime", format);
+        props.put("format", format);
+        props.put("debug", "true");
+        props.put("input.formats", "yyyy-MM-dd HH:mm:ss.S;yyyy-MM-dd'T'HH:mm:ss.SS'Z'");
+        tsConverter.configure(props);
+        tsConverter.converterFor(new BasicColumn("myfield", "db1.table1", "TIMESTAMP"), testRegistration);
+        testRegistration.converter.convert(input);
+    }
+
+    @Test
+    public void shouldHandleMultiDatetimeFormat(){
+        final String input = "2022-05-20T00:35:29Z";
+        final DebeziumTimestampConverter tsConverter = new DebeziumTimestampConverter();
+        final String format = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
+        Properties props = new Properties();
+
+        props.put("input.formats", "yyyy-MM-dd HH:mm:ss.S;yyyy-MM-dd'T'HH:mm:ss'Z'");
         props.put("format", format);
         props.put("debug", "true");
         tsConverter.configure(props);
