@@ -20,9 +20,9 @@ import org.apache.kafka.connect.errors.ConnectException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class DebeziumTimestampConverter implements CustomConverter<SchemaBuilder, RelationalColumn> {
+public class DebeziumAllTimestampFieldsToAvroTimestampConverter implements CustomConverter<SchemaBuilder, RelationalColumn> {
     private List<TimestampConverter<SourceRecord>> converters = new ArrayList<>();
-    private static final Logger LOGGER = LoggerFactory.getLogger(DebeziumTimestampConverter.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DebeziumAllTimestampFieldsToAvroTimestampConverter.class);
 
     @Override
     public void configure(Properties props) {

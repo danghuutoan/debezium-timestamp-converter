@@ -16,7 +16,7 @@ import java.util.OptionalInt;
 import java.util.Properties;
 import java.util.TimeZone;
 
-public class DebeziumTimestampConverterTests {
+public class DebeziumAllTimestampFieldsToAvroTimestampConverterTests {
 
     public static class BasicColumn implements RelationalColumn {
 
@@ -117,7 +117,7 @@ public class DebeziumTimestampConverterTests {
     @Test
     public void testShouldHandleTimestampType() throws ParseException {
         final String input = "2022-05-20T00:35:29Z";
-        final DebeziumTimestampConverter tsConverter = new DebeziumTimestampConverter();
+        final DebeziumAllTimestampFieldsToAvroTimestampConverter tsConverter = new DebeziumAllTimestampFieldsToAvroTimestampConverter();
         final String format = "yyyy-MM-dd'T'HH:mm:ss'Z'";
         Properties props = new Properties();
 
@@ -135,7 +135,7 @@ public class DebeziumTimestampConverterTests {
     @Test
     public void testShouldIgoreStringType() throws ParseException {
         final String input = "2022-05-20T00:35:29Z";
-        final DebeziumTimestampConverter tsConverter = new DebeziumTimestampConverter();
+        final DebeziumAllTimestampFieldsToAvroTimestampConverter tsConverter = new DebeziumAllTimestampFieldsToAvroTimestampConverter();
         final String format = "yyyy-MM-dd'T'HH:mm:ss'Z'";
         Properties props = new Properties();
 
@@ -150,7 +150,7 @@ public class DebeziumTimestampConverterTests {
     @Test(expected = DataException.class)
     public void testInvalidDatetimeFormat(){
         final String input = "2022-05-20T00:35:29Z";
-        final DebeziumTimestampConverter tsConverter = new DebeziumTimestampConverter();
+        final DebeziumAllTimestampFieldsToAvroTimestampConverter tsConverter = new DebeziumAllTimestampFieldsToAvroTimestampConverter();
         final String format = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
         Properties props = new Properties();
 
@@ -166,7 +166,7 @@ public class DebeziumTimestampConverterTests {
     @Test
     public void shouldHandleMultiDatetimeFormat(){
         final String input = "2022-05-20T00:35:29Z";
-        final DebeziumTimestampConverter tsConverter = new DebeziumTimestampConverter();
+        final DebeziumAllTimestampFieldsToAvroTimestampConverter tsConverter = new DebeziumAllTimestampFieldsToAvroTimestampConverter();
         final String format = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
         Properties props = new Properties();
 
