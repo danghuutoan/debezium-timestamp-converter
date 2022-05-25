@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 public class DebeziumAllTimestampFieldsToAvroTimestampConverter
         implements CustomConverter<SchemaBuilder, RelationalColumn> {
     private List<TimestampConverter<SourceRecord>> converters = new ArrayList<>();
+    private List<String> columnTypes = new ArrayList<>();
     private static final Logger LOGGER = LoggerFactory
             .getLogger(DebeziumAllTimestampFieldsToAvroTimestampConverter.class);
 
@@ -36,6 +37,7 @@ public class DebeziumAllTimestampFieldsToAvroTimestampConverter
                     "No input datetime format provided");
         }
 
+        columnTypes = Arrays.asList(props.getProperty("column.types", "TIMESTAMP").split(";"));
         for (String format : inputFormats) {
             LOGGER.info("configure DebeziumAllTimestampFieldsToAvroTimestampConverter using format {}", format);
             Map<String, String> config = new HashMap<>();
@@ -52,7 +54,7 @@ public class DebeziumAllTimestampFieldsToAvroTimestampConverter
     public void converterFor(RelationalColumn column,
             ConverterRegistration<SchemaBuilder> registration) {
 
-        if ("TIMESTAMP".equals(column.typeName())) {
+        if (columnTypes.contains(column.typeName())) {
             registration.register(Timestamp.builder(), value -> {
 
                 SourceRecord record = new SourceRecord(null, null, null, 0, SchemaBuilder.string().schema(),
