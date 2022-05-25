@@ -37,7 +37,7 @@ public class DebeziumAllTimestampFieldsToAvroTimestampConverter
         }
 
         for (String format : inputFormats) {
-            System.out.println(format);
+            LOGGER.info("configure DebeziumAllTimestampFieldsToAvroTimestampConverter using format {}", format);
             Map<String, String> config = new HashMap<>();
             config.put(TimestampConverter.TARGET_TYPE_CONFIG, "Timestamp");
             config.put(TimestampConverter.FORMAT_CONFIG, format);
