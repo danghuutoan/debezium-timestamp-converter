@@ -6,7 +6,6 @@ import io.debezium.spi.converter.RelationalColumn;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -16,6 +15,7 @@ import org.apache.kafka.connect.data.Timestamp;
 import org.apache.kafka.connect.errors.DataException;
 import org.apache.kafka.connect.source.SourceRecord;
 import org.apache.kafka.connect.transforms.TimestampConverter;
+import org.apache.kafka.common.config.ConfigException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,7 +28,13 @@ public class DebeziumAllTimestampFieldsToAvroTimestampConverter
     @Override
     public void configure(Properties props) {
 
-        Iterable<String> inputFormats = Arrays.asList(props.getProperty("input.formats").split(";"));
+        Iterable<String> inputFormats = null;
+        try {
+            inputFormats = Arrays.asList(props.getProperty("input.formats").split(";"));
+        } catch (NullPointerException e) {
+            throw new ConfigException(
+                    "DebeziumAllTimestampFieldsToAvroTimestampConverter requires a SimpleDateFormat-compatible pattern for string timestamps");
+        }
 
         for (String format : inputFormats) {
             System.out.println(format);

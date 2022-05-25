@@ -1,5 +1,6 @@
 package ets.kafka.connect.converters;
 
+import org.apache.kafka.common.config.ConfigException;
 import org.apache.kafka.connect.data.SchemaBuilder;
 import org.apache.kafka.connect.errors.DataException;
 import org.junit.Test;
@@ -161,7 +162,7 @@ public class DebeziumAllTimestampFieldsToAvroTimestampConverterTests {
     }
 
     @Test
-    public void shouldHandleMultiDatetimeFormat(){
+    public void shouldHandleMultiDatetimeFormat() {
         final String input = "2022-05-20T00:35:29Z";
         final DebeziumAllTimestampFieldsToAvroTimestampConverter tsConverter = new DebeziumAllTimestampFieldsToAvroTimestampConverter();
         final String format = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
@@ -173,6 +174,14 @@ public class DebeziumAllTimestampFieldsToAvroTimestampConverterTests {
         tsConverter.configure(props);
         tsConverter.converterFor(new BasicColumn("myfield", "db1.table1", "TIMESTAMP"), testRegistration);
         testRegistration.converter.convert(input);
+    }
+    
+    @Test(expected = ConfigException.class)
+    public void shouldHaveFormatConfig(){
+        final DebeziumAllTimestampFieldsToAvroTimestampConverter tsConverter = new DebeziumAllTimestampFieldsToAvroTimestampConverter();
+        Properties props = new Properties();
+        props.put("debug", "true");
+        tsConverter.configure(props);
     }
 
     SimpleDateFormat getFormater(String parttern) {
