@@ -66,6 +66,7 @@ public class DebeziumAllTimestampFieldsToAvroTimestampConverter
                 for (TimestampConverter<SourceRecord> converter : converters) {
                     try {
                         convertedRecord = converter.apply(record);
+                        break;
                     } catch (DataException e) {
                         exception = e;
                         LOGGER.warn(e.getMessage());
