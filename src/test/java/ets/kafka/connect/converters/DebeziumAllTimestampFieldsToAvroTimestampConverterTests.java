@@ -134,7 +134,6 @@ public class DebeziumAllTimestampFieldsToAvroTimestampConverterTests {
 
     @Test
     public void testShouldIgoreStringType() throws ParseException {
-        final String input = "2022-05-20T00:35:29Z";
         final DebeziumAllTimestampFieldsToAvroTimestampConverter tsConverter = new DebeziumAllTimestampFieldsToAvroTimestampConverter();
         final String format = "yyyy-MM-dd'T'HH:mm:ss'Z'";
         Properties props = new Properties();
@@ -153,8 +152,6 @@ public class DebeziumAllTimestampFieldsToAvroTimestampConverterTests {
         final DebeziumAllTimestampFieldsToAvroTimestampConverter tsConverter = new DebeziumAllTimestampFieldsToAvroTimestampConverter();
         final String format = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
         Properties props = new Properties();
-
-        props.put("format.datetime", format);
         props.put("format", format);
         props.put("debug", "true");
         props.put("input.formats", "yyyy-MM-dd HH:mm:ss.S;yyyy-MM-dd'T'HH:mm:ss.SS'Z'");
