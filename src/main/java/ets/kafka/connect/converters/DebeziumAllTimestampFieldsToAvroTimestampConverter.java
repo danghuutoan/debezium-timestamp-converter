@@ -75,7 +75,7 @@ public class DebeziumAllTimestampFieldsToAvroTimestampConverter
                         throw new RuntimeException(
                                 "Bug Alert TimestampConverter: if record is null, exception should be provided");
                     }
-                    LOGGER.error(exception.getMessage());
+                    LOGGER.error("Provided input format are not compatible with data.");
                     throw new DataException(exception);
                 }
                 return convertedRecord.value();
