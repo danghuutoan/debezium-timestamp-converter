@@ -33,7 +33,7 @@ public class DebeziumAllTimestampFieldsToAvroTimestampConverter
             inputFormats = Arrays.asList(props.getProperty("input.formats").split(";"));
         } catch (NullPointerException e) {
             throw new ConfigException(
-                    "DebeziumAllTimestampFieldsToAvroTimestampConverter requires a SimpleDateFormat-compatible pattern for string timestamps");
+                    "No input datetime format provided");
         }
 
         for (String format : inputFormats) {
@@ -66,7 +66,7 @@ public class DebeziumAllTimestampFieldsToAvroTimestampConverter
                         convertedRecord = converter.apply(record);
                     } catch (DataException e) {
                         exception = e;
-                        LOGGER.warn("Failed to parse datetime using converter {}", converter.toString());
+                        LOGGER.warn(e.getMessage());
                     }
                 }
 
@@ -75,6 +75,7 @@ public class DebeziumAllTimestampFieldsToAvroTimestampConverter
                         throw new RuntimeException(
                                 "Bug Alert TimestampConverter: if record is null, exception should be provided");
                     }
+                    LOGGER.error(exception.getMessage());
                     throw new DataException(exception);
                 }
                 return convertedRecord.value();

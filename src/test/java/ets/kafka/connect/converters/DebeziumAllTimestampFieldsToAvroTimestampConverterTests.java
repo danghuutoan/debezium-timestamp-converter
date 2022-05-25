@@ -151,7 +151,7 @@ public class DebeziumAllTimestampFieldsToAvroTimestampConverterTests {
     public void testInvalidDatetimeFormat(){
         final String input = "2022-05-20T00:35:29Z";
         final DebeziumAllTimestampFieldsToAvroTimestampConverter tsConverter = new DebeziumAllTimestampFieldsToAvroTimestampConverter();
-        final String format = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
+        final String format = "yyyy-MM-dd'T'HH:mm:xys'Z'";
         Properties props = new Properties();
         props.put("format", format);
         props.put("debug", "true");
@@ -175,13 +175,29 @@ public class DebeziumAllTimestampFieldsToAvroTimestampConverterTests {
         tsConverter.converterFor(new BasicColumn("myfield", "db1.table1", "TIMESTAMP"), testRegistration);
         testRegistration.converter.convert(input);
     }
-    
+
+    @Test(expected = ConfigException.class)
+    public void shouldHaveCompatibleSimpleDateFormat() {
+        final String input = "2022-05-20T00:35:29Z";
+        final DebeziumAllTimestampFieldsToAvroTimestampConverter tsConverter = new DebeziumAllTimestampFieldsToAvroTimestampConverter();
+        final String uncompatibleSimpleDateformat = "anUncompatibleFormat";
+        Properties props = new Properties();
+
+        props.put("input.formats", uncompatibleSimpleDateformat);
+        tsConverter.configure(props);
+        tsConverter.converterFor(new BasicColumn("myfield", "db1.table1", "TIMESTAMP"), testRegistration);
+        testRegistration.converter.convert(input);
+    }
+
     @Test(expected = ConfigException.class)
     public void shouldHaveFormatConfig(){
         final DebeziumAllTimestampFieldsToAvroTimestampConverter tsConverter = new DebeziumAllTimestampFieldsToAvroTimestampConverter();
+        final String input = "2022-05-20T00:35:29Z";
         Properties props = new Properties();
         props.put("debug", "true");
         tsConverter.configure(props);
+        tsConverter.converterFor(new BasicColumn("myfield", "db1.table1", "TIMESTAMP"), testRegistration);
+        testRegistration.converter.convert(input);
     }
 
     SimpleDateFormat getFormater(String parttern) {
