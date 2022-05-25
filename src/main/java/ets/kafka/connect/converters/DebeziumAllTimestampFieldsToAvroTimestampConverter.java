@@ -16,13 +16,14 @@ import org.apache.kafka.connect.data.Timestamp;
 import org.apache.kafka.connect.errors.DataException;
 import org.apache.kafka.connect.source.SourceRecord;
 import org.apache.kafka.connect.transforms.TimestampConverter;
-import org.apache.kafka.connect.errors.ConnectException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class DebeziumAllTimestampFieldsToAvroTimestampConverter implements CustomConverter<SchemaBuilder, RelationalColumn> {
+public class DebeziumAllTimestampFieldsToAvroTimestampConverter
+        implements CustomConverter<SchemaBuilder, RelationalColumn> {
     private List<TimestampConverter<SourceRecord>> converters = new ArrayList<>();
-    private static final Logger LOGGER = LoggerFactory.getLogger(DebeziumAllTimestampFieldsToAvroTimestampConverter.class);
+    private static final Logger LOGGER = LoggerFactory
+            .getLogger(DebeziumAllTimestampFieldsToAvroTimestampConverter.class);
 
     @Override
     public void configure(Properties props) {
@@ -46,32 +47,33 @@ public class DebeziumAllTimestampFieldsToAvroTimestampConverter implements Custo
             ConverterRegistration<SchemaBuilder> registration) {
 
         if ("TIMESTAMP".equals(column.typeName())) {
-            registration.register(Timestamp.builder(), x -> {
+            registration.register(Timestamp.builder(), value -> {
 
                 SourceRecord record = new SourceRecord(null, null, null, 0, SchemaBuilder.string().schema(),
-                        x.toString());
-                
-                LOGGER.warn("received {}", x.toString());
-                System.out.printf("received %s", x.toString());
+                        value.toString());
+
+                LOGGER.debug("received {}", value.toString());
+                SourceRecord convertedRecord = null;
+                Exception exception = null;
                 for (TimestampConverter<SourceRecord> converter : converters) {
                     try {
-                        record = converter.apply(record);
-                        break;
+                        convertedRecord = converter.apply(record);
                     } catch (DataException e) {
-                        // TODO: handle exception
-                        int index = converters.indexOf(converter);
-                        System.out.println(index);
-                        if (index == converters.size() - 1) {
-                            // LOGGER.warn("Failed to parse datetime using all converters");
-                            throw new DataException(e);
-                        } else {
-                            // LOGGER.warn("Failed to parse datetime using format using converter {}, try the next one", index);
-                        }
-
+                        exception = e;
+                        LOGGER.warn("Failed to parse datetime using converter {}", converter.toString());
                     }
                 }
-                return record.value();
+
+                if (convertedRecord == null) {
+                    if (exception == null) {
+                        throw new RuntimeException(
+                                "Bug Alert TimestampConverter: if record is null, exception should be provided");
+                    }
+                    throw new DataException(exception);
+                }
+                return convertedRecord.value();
             });
         }
     }
+
 }
