@@ -134,6 +134,24 @@ public class DebeziumAllTimestampFieldsToAvroTimestampConverterTests {
 
 
     @Test
+    public void testShouldAllowsConfigureColumnType() throws ParseException {
+        final String input = "2022-05-20T00:35:29Z";
+        final DebeziumAllTimestampFieldsToAvroTimestampConverter tsConverter = new DebeziumAllTimestampFieldsToAvroTimestampConverter();
+        final String format = "yyyy-MM-dd'T'HH:mm:ss'Z'";
+        Properties props = new Properties();
+
+        props.put("column.types", "randomType");
+        props.put("input.formats", "yyyy-MM-dd HH:mm:ss.S;yyyy-MM-dd'T'HH:mm:ss'Z'");
+        tsConverter.configure(props);
+        tsConverter.converterFor(new BasicColumn("myfield", "db1.table1", "randomType"), testRegistration);
+        Date actualResult = (Date) testRegistration.converter.convert(input);
+        Date expectedResult = getFormater(format).parse(input);
+        Assertions.assertThat(testRegistration.fieldSchema.name())
+                .isEqualTo("org.apache.kafka.connect.data.Timestamp");
+        Assertions.assertThat(actualResult.equals(expectedResult)).isEqualTo(true);
+    }
+
+    @Test
     public void testShouldIgoreStringType() throws ParseException {
         final DebeziumAllTimestampFieldsToAvroTimestampConverter tsConverter = new DebeziumAllTimestampFieldsToAvroTimestampConverter();
         final String format = "yyyy-MM-dd'T'HH:mm:ss'Z'";
