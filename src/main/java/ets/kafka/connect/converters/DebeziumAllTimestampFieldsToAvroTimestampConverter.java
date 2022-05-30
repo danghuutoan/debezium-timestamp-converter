@@ -5,11 +5,15 @@ import io.debezium.spi.converter.RelationalColumn;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 
+import org.apache.kafka.connect.data.Schema;
 import org.apache.kafka.connect.data.SchemaBuilder;
 import org.apache.kafka.connect.data.Timestamp;
 import org.apache.kafka.connect.errors.DataException;
@@ -22,6 +26,7 @@ import org.slf4j.LoggerFactory;
 public class DebeziumAllTimestampFieldsToAvroTimestampConverter
         implements CustomConverter<SchemaBuilder, RelationalColumn> {
     private List<TimestampConverter<SourceRecord>> converters = new ArrayList<>();
+    private String alternativeDefaultValue;
     private List<String> columnTypes = new ArrayList<>();
     private static final Logger LOGGER = LoggerFactory
             .getLogger(DebeziumAllTimestampFieldsToAvroTimestampConverter.class);
@@ -38,6 +43,8 @@ public class DebeziumAllTimestampFieldsToAvroTimestampConverter
         }
 
         columnTypes = Arrays.asList(props.getProperty("column.types", "TIMESTAMP").split(";"));
+        alternativeDefaultValue = props.getProperty("alternative.default.value", "1970-01-01 00:00:01");
+
         for (String format : inputFormats) {
             LOGGER.info("configure DebeziumAllTimestampFieldsToAvroTimestampConverter using format {}", format);
             Map<String, String> config = new HashMap<>();
@@ -53,14 +60,14 @@ public class DebeziumAllTimestampFieldsToAvroTimestampConverter
     @Override
     public void converterFor(RelationalColumn column,
             ConverterRegistration<SchemaBuilder> registration) {
-
+        SchemaBuilder schema = Timestamp.builder();
         if (columnTypes.contains(column.typeName())) {
-            registration.register(Timestamp.builder(), value -> {
+
+            registration.register(schema, value -> {
 
                 SourceRecord record = new SourceRecord(null, null, null, 0, SchemaBuilder.string().schema(),
-                        value.toString());
+                        value != null ?value.toString(): alternativeDefaultValue);
 
-                LOGGER.debug("received {}", value.toString());
                 SourceRecord convertedRecord = null;
                 Exception exception = null;
                 for (TimestampConverter<SourceRecord> converter : converters) {
@@ -85,5 +92,4 @@ public class DebeziumAllTimestampFieldsToAvroTimestampConverter
             });
         }
     }
-
 }
