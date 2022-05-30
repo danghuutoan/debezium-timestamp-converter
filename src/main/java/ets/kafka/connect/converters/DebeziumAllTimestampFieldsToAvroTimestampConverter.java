@@ -39,7 +39,7 @@ public class DebeziumAllTimestampFieldsToAvroTimestampConverter
         }
 
         columnTypes = Arrays.asList(props.getProperty("column.types", "TIMESTAMP").split(";"));
-        alternativeDefaultValue = props.getProperty("alternative.default.value", "1970-01-01 00:00:01");
+        alternativeDefaultValue = props.getProperty("alternative.default.value", "1970-01-01 00:00:00");
 
         for (String format : inputFormats) {
             LOGGER.info("configure DebeziumAllTimestampFieldsToAvroTimestampConverter using format {}", format);
