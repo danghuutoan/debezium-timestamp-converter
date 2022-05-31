@@ -133,38 +133,42 @@ public class DebeziumAllTimestampFieldsToAvroTimestampConverterTests {
     }
 
     @Test
-    public void testShouldHandleMysql0000() throws ParseException {
+    public void testShouldHandleMysql0000() {
         final String input = "0000-00-00 00:00:00";
         final DebeziumAllTimestampFieldsToAvroTimestampConverter tsConverter = new DebeziumAllTimestampFieldsToAvroTimestampConverter();
         final String format = "yyyy-MM-dd HH:mm:ss";
         Properties props = new Properties();
+        String expectedResult = "2022-01-01 00:00:00";
 
-        props.put("debug", "true");
         props.put("input.formats", "yyyy-MM-dd HH:mm:ss;yyyy-MM-dd'T'HH:mm:ss'Z'");
+        props.put("alternative.default.value", expectedResult);
+        
         tsConverter.configure(props);
         tsConverter.converterFor(new BasicColumn("myfield", "db1.table1", "TIMESTAMP"), testRegistration);
         Date actualResult = (Date) testRegistration.converter.convert(input);
-        String expectedResult = getFormater(format).format(actualResult);
+        
         Assertions.assertThat(testRegistration.fieldSchema.name()).isEqualTo("org.apache.kafka.connect.data.Timestamp");
-        Assertions.assertThat(expectedResult).isEqualTo("1970-01-01 00:00:00");
+        Assertions.assertThat(getFormater(format).format(actualResult)).isEqualTo(expectedResult);
     }
 
 
     @Test
-    public void testShouldHandleNullValue() throws ParseException {
+    public void testShouldHandleNullValue() {
         final String input = null;
         final DebeziumAllTimestampFieldsToAvroTimestampConverter tsConverter = new DebeziumAllTimestampFieldsToAvroTimestampConverter();
         final String format = "yyyy-MM-dd HH:mm:ss";
-        Properties props = new Properties();
+        String expectedResult = "2022-01-01 00:00:00";
 
-        props.put("debug", "true");
+        Properties props = new Properties();
         props.put("input.formats", "yyyy-MM-dd HH:mm:ss;yyyy-MM-dd'T'HH:mm:ss'Z'");
+        props.put("alternative.default.value", expectedResult);
+
         tsConverter.configure(props);
         tsConverter.converterFor(new BasicColumn("myfield", "db1.table1", "TIMESTAMP"), testRegistration);
         Date actualResult = (Date) testRegistration.converter.convert(input);
-        String expectedResult = getFormater(format).format(actualResult);
+        
         Assertions.assertThat(testRegistration.fieldSchema.name()).isEqualTo("org.apache.kafka.connect.data.Timestamp");
-        Assertions.assertThat(expectedResult).isEqualTo("1970-01-01 00:00:00");
+        Assertions.assertThat(getFormater(format).format(actualResult)).isEqualTo(expectedResult);
     }
 
 
