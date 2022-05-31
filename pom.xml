@@ -3,7 +3,7 @@
   <groupId>danghuutoan.kafka.connect.converters</groupId>
   <artifactId>DebeziumAllTimestampFieldsToAvroTimestampConverter</artifactId>
   <packaging>jar</packaging>
-  <version>1.0.2</version>
+  <version>1.0.3</version>
   <name>TimestampConverter</name>
   <url>http://maven.apache.org</url>
 
