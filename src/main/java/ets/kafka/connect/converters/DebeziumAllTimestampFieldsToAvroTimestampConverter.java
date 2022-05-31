@@ -61,7 +61,8 @@ public class DebeziumAllTimestampFieldsToAvroTimestampConverter
 
             registration.register(schema, value -> {
 
-                value = (value != null) ? value.toString() : alternativeDefaultValue;
+                value = (value == null) || (value.toString() == "0000-00-00 00:00:00") ? alternativeDefaultValue
+                        : value.toString();
 
                 SourceRecord record = new SourceRecord(null, null, null, 0, SchemaBuilder.string().schema(),
                         value);
