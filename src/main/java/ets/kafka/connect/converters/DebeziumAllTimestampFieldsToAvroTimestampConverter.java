@@ -21,8 +21,7 @@ import org.slf4j.LoggerFactory;
 
 public class DebeziumAllTimestampFieldsToAvroTimestampConverter
         implements CustomConverter<SchemaBuilder, RelationalColumn> {
-    public static final String UNIX_START_TIME = "1970-01-01 00:00:00";
-    public static final String MYSQL_ZERO_DATETIME = "0000-00-00 00:00:00";
+
     private List<TimestampConverter<SourceRecord>> converters = new ArrayList<>();
     private String alternativeDefaultValue;
     private List<String> columnTypes = new ArrayList<>();
@@ -41,7 +40,10 @@ public class DebeziumAllTimestampFieldsToAvroTimestampConverter
         }
 
         columnTypes = Arrays.asList(props.getProperty("column.types", "TIMESTAMP").split(";"));
-        alternativeDefaultValue = props.getProperty("alternative.default.value", UNIX_START_TIME);
+        alternativeDefaultValue = props.getProperty("alternative.default.value", "1970-01-01 00:00:00");
+
+        if (alternativeDefaultValue.equals("null"))
+            alternativeDefaultValue = null;
 
         for (String format : inputFormats) {
             LOGGER.info("configure DebeziumAllTimestampFieldsToAvroTimestampConverter using format {}", format);
@@ -63,7 +65,7 @@ public class DebeziumAllTimestampFieldsToAvroTimestampConverter
 
             registration.register(schema, value -> {
 
-                value = (value == null) || (value.toString() == MYSQL_ZERO_DATETIME) ? alternativeDefaultValue
+                value = (value == null || value.toString().equals("0000-00-00 00:00:00")) ? alternativeDefaultValue
                         : value.toString();
 
                 SourceRecord record = new SourceRecord(null, null, null, 0, SchemaBuilder.string().schema(),
@@ -77,6 +79,7 @@ public class DebeziumAllTimestampFieldsToAvroTimestampConverter
                         break;
                     } catch (DataException e) {
                         exception = e;
+                        LOGGER.warn(e.getMessage());
                     }
                 }
 

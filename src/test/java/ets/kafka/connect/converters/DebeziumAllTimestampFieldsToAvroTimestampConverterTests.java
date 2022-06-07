@@ -171,6 +171,23 @@ public class DebeziumAllTimestampFieldsToAvroTimestampConverterTests {
         Assertions.assertThat(getFormater(format).format(actualResult)).isEqualTo(expectedResult);
     }
 
+    @Test
+    public void testShouldHandleDefaultNullValue() {
+        final String input = null;
+        final DebeziumAllTimestampFieldsToAvroTimestampConverter tsConverter = new DebeziumAllTimestampFieldsToAvroTimestampConverter();
+
+        Properties props = new Properties();
+        props.put("input.formats", "yyyy-MM-dd HH:mm:ss;yyyy-MM-dd'T'HH:mm:ss'Z'");
+        props.put("alternative.default.value", "null");
+
+        tsConverter.configure(props);
+        tsConverter.converterFor(new BasicColumn("myfield", "db1.table1", "TIMESTAMP"), testRegistration);
+        Object actualResult = testRegistration.converter.convert(input);
+        
+        Assertions.assertThat(testRegistration.fieldSchema.name()).isEqualTo("org.apache.kafka.connect.data.Timestamp");
+        Assertions.assertThat(actualResult).isEqualTo(null);
+    }
+
 
     @Test
     public void testShouldAllowsConfigureColumnType() throws ParseException {
