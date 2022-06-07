@@ -80,7 +80,6 @@ public class DebeziumAllTimestampFieldsToAvroTimestampConverter
                         break;
                     } catch (DataException e) {
                         exception = e;
-                        LOGGER.warn(e.getMessage());
                     }
                 }
 
