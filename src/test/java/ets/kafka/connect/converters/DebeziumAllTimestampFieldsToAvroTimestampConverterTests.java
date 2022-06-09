@@ -132,24 +132,24 @@ public class DebeziumAllTimestampFieldsToAvroTimestampConverterTests {
         Assertions.assertThat(actualResult.equals(expectedResult)).isEqualTo(true);
     }
 
-    @Test
-    public void testShouldHandleMysql0000() {
-        final String input = "0000-00-00 00:00:00";
-        final DebeziumAllTimestampFieldsToAvroTimestampConverter tsConverter = new DebeziumAllTimestampFieldsToAvroTimestampConverter();
-        final String format = "yyyy-MM-dd HH:mm:ss";
-        Properties props = new Properties();
-        String expectedResult = "2022-01-01 00:00:00";
+    // @Test
+    // public void testShouldHandleMysql0000() {
+    //     final String input = "0000-00-00 00:00:00";
+    //     final DebeziumAllTimestampFieldsToAvroTimestampConverter tsConverter = new DebeziumAllTimestampFieldsToAvroTimestampConverter();
+    //     final String format = "yyyy-MM-dd HH:mm:ss";
+    //     Properties props = new Properties();
+    //     String expectedResult = "2022-01-01 00:00:00";
 
-        props.put("input.formats", "yyyy-MM-dd HH:mm:ss;yyyy-MM-dd'T'HH:mm:ss'Z'");
-        props.put("alternative.default.value", expectedResult);
+    //     props.put("input.formats", "yyyy-MM-dd HH:mm:ss;yyyy-MM-dd'T'HH:mm:ss'Z'");
+    //     props.put("alternative.default.value", expectedResult);
         
-        tsConverter.configure(props);
-        tsConverter.converterFor(new BasicColumn("myfield", "db1.table1", "TIMESTAMP"), testRegistration);
-        Date actualResult = (Date) testRegistration.converter.convert(input);
+    //     tsConverter.configure(props);
+    //     tsConverter.converterFor(new BasicColumn("myfield", "db1.table1", "TIMESTAMP"), testRegistration);
+    //     Date actualResult = (Date) testRegistration.converter.convert(input);
         
-        Assertions.assertThat(testRegistration.fieldSchema.name()).isEqualTo("org.apache.kafka.connect.data.Timestamp");
-        Assertions.assertThat(getFormater(format).format(actualResult)).isEqualTo(expectedResult);
-    }
+    //     Assertions.assertThat(testRegistration.fieldSchema.name()).isEqualTo("org.apache.kafka.connect.data.Timestamp");
+    //     Assertions.assertThat(getFormater(format).format(actualResult)).isEqualTo(expectedResult);
+    // }
 
 
     @Test
