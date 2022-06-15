@@ -32,7 +32,6 @@ public class DebeziumAllTimestampFieldsToAvroTimestampConverter
     private String alternativeDefaultValue;
     private Boolean debug;
     private List<String> extraTimestampTypes = new ArrayList<>();
-    private List<String> nullEquivalentValues = new ArrayList<>();
     private final Map<String, TimestampConverter<SourceRecord>> converterMap = new LinkedHashMap<>();
     private static final Logger LOGGER = LoggerFactory
             .getLogger(DebeziumAllTimestampFieldsToAvroTimestampConverter.class);
@@ -47,14 +46,10 @@ public class DebeziumAllTimestampFieldsToAvroTimestampConverter
             throw new ConfigException(
                     "No input datetime format provided");
         }
-        String[] nullEquivalentValuesArray;
         extraTimestampTypes = Arrays.asList(props.getProperty("extra.timestamp.types", "TIMESTAMP").split(";"));
         alternativeDefaultValue = props.getProperty("alternative.default.value", UNIX_START_TIME);
         debug = props.getProperty("debug", "false").equals("true");
-        nullEquivalentValuesArray = props.getProperty("null.equivalent.values", "0000-00-00 00:00:00").split(";");
-        for (int i = 0; i < nullEquivalentValuesArray.length; i++) {
-            nullEquivalentValues.add(nullEquivalentValuesArray[i]);
-        }
+    
         if (alternativeDefaultValue.equals("null"))
             alternativeDefaultValue = null;
 
