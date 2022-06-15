@@ -29,7 +29,6 @@ public class DebeziumAllTimestampFieldsToAvroTimestampConverter
     public static final String UNIX_START_TIME = "1970-01-01 00:00:00";
     public static final String MYSQL_ZERO_DATETIME = "0000-00-00 00:00:00";
     private List<TimestampConverter<SourceRecord>> converters = new ArrayList<>();
-    private String alternativeDefaultValue;
     private Boolean debug;
     private List<String> extraTimestampTypes = new ArrayList<>();
     private final Map<String, TimestampConverter<SourceRecord>> converterMap = new LinkedHashMap<>();
@@ -47,12 +46,7 @@ public class DebeziumAllTimestampFieldsToAvroTimestampConverter
                     "No input datetime format provided");
         }
         extraTimestampTypes = Arrays.asList(props.getProperty("extra.timestamp.types", "TIMESTAMP").split(";"));
-        alternativeDefaultValue = props.getProperty("alternative.default.value", UNIX_START_TIME);
-        debug = props.getProperty("debug", "false").equals("true");
     
-        if (alternativeDefaultValue.equals("null"))
-            alternativeDefaultValue = null;
-
         for (String format : inputFormats) {
             LOGGER.info("configure DebeziumAllTimestampFieldsToAvroTimestampConverter using format {}", format);
             Map<String, String> config = new HashMap<>();
