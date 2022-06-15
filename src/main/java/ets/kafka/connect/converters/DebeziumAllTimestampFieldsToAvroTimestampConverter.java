@@ -87,42 +87,8 @@ public class DebeziumAllTimestampFieldsToAvroTimestampConverter
 
         if (column.typeName().equals("TIMESTAMP") || extraTimestampTypes.contains(column.typeName())) {
             SchemaBuilder schema = Timestamp.builder().optional().defaultValue(null);
+            registration.register(schema, value -> convertTimestamp(value));
 
-            registration.register(schema, value -> {
-
-                if (debug)
-                    LOGGER.info("Received value{}", value);
-
-                if (value == null)
-                    return null;
-
-                SourceRecord record = new SourceRecord(null, null, null, 0, SchemaBuilder.string().schema(),
-                        value.toString());
-
-                SourceRecord convertedRecord = null;
-                Exception exception = null;
-                for (TimestampConverter<SourceRecord> converter : converters) {
-                    try {
-                        convertedRecord = converter.apply(record);
-                        break;
-                    } catch (DataException e) {
-                        exception = e;
-                    }
-                }
-
-                if (convertedRecord == null) {
-                    if (exception == null) {
-                        throw new RuntimeException(
-                                "Bug Alert TimestampConverter: if record is null, exception should be provided");
-                    }
-                    LOGGER.error("Provided input format are not compatible with data.");
-                    throw new DataException(exception);
-                }
-                java.util.Date result = (java.util.Date) convertedRecord.value();
-                if (result != null && result.getTime() <= 0)
-                    return null;
-                return result;
-            });
         } else if (column.typeName().equals("DATE")) {
             SchemaBuilder schema = Date.builder().optional().defaultValue(null);
             registration.register(schema, value -> convertDate(value));
@@ -135,6 +101,41 @@ public class DebeziumAllTimestampFieldsToAvroTimestampConverter
             if (debug)
                 LOGGER.info("##########{}", column.typeName());
         }
+    }
+
+    private Object convertTimestamp(Object value) {
+        if (debug)
+            LOGGER.info("Received value{}", value);
+
+        if (value == null)
+            return null;
+
+        SourceRecord record = new SourceRecord(null, null, null, 0, SchemaBuilder.string().schema(),
+                value.toString());
+
+        SourceRecord convertedRecord = null;
+        Exception exception = null;
+        for (TimestampConverter<SourceRecord> converter : converters) {
+            try {
+                convertedRecord = converter.apply(record);
+                break;
+            } catch (DataException e) {
+                exception = e;
+            }
+        }
+
+        if (convertedRecord == null) {
+            if (exception == null) {
+                throw new RuntimeException(
+                        "Bug Alert TimestampConverter: if record is null, exception should be provided");
+            }
+            LOGGER.error("Provided input format are not compatible with data.");
+            throw new DataException(exception);
+        }
+        java.util.Date result = (java.util.Date) convertedRecord.value();
+        if (result != null && result.getTime() <= 0)
+            return null;
+        return result;
     }
 
     private Object convertDate(Object value) {
