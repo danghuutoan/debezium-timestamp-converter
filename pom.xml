@@ -71,6 +71,11 @@
       <version>${version.debezium}</version>
     </dependency>
     <dependency>
+      <groupId>io.debezium</groupId>
+      <artifactId>debezium-core</artifactId>
+      <version>${version.debezium}</version>
+    </dependency>
+    <dependency>
       <groupId>org.apache.kafka</groupId>
       <artifactId>connect-api</artifactId>
       <version>${version.kafka}</version>

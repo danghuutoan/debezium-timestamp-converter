@@ -3,13 +3,18 @@ package ets.kafka.connect.converters;
 import io.debezium.spi.converter.CustomConverter;
 import io.debezium.spi.converter.RelationalColumn;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import org.apache.kafka.connect.data.Date;
 import org.apache.kafka.connect.data.SchemaBuilder;
 import org.apache.kafka.connect.data.Timestamp;
 import org.apache.kafka.connect.errors.DataException;
@@ -26,8 +31,9 @@ public class DebeziumAllTimestampFieldsToAvroTimestampConverter
     private List<TimestampConverter<SourceRecord>> converters = new ArrayList<>();
     private String alternativeDefaultValue;
     private Boolean debug;
-    private List<String> columnTypes = new ArrayList<>();
+    private List<String> extraTimestampTypes = new ArrayList<>();
     private List<String> nullEquivalentValues = new ArrayList<>();
+    private final Map<String, TimestampConverter<SourceRecord>> converterMap = new LinkedHashMap<>();
     private static final Logger LOGGER = LoggerFactory
             .getLogger(DebeziumAllTimestampFieldsToAvroTimestampConverter.class);
 
@@ -41,8 +47,8 @@ public class DebeziumAllTimestampFieldsToAvroTimestampConverter
             throw new ConfigException(
                     "No input datetime format provided");
         }
-        String [] nullEquivalentValuesArray;
-        columnTypes = Arrays.asList(props.getProperty("column.types", "TIMESTAMP").split(";"));
+        String[] nullEquivalentValuesArray;
+        extraTimestampTypes = Arrays.asList(props.getProperty("extra.timestamp.types", "TIMESTAMP").split(";"));
         alternativeDefaultValue = props.getProperty("alternative.default.value", UNIX_START_TIME);
         debug = props.getProperty("debug", "false").equals("true");
         nullEquivalentValuesArray = props.getProperty("null.equivalent.values", "0000-00-00 00:00:00").split(";");
@@ -62,25 +68,36 @@ public class DebeziumAllTimestampFieldsToAvroTimestampConverter
             converters.add(timestampConverter);
         }
 
+        Map<String, String> config = new HashMap<>();
+        config.put(TimestampConverter.TARGET_TYPE_CONFIG, "Date");
+        TimestampConverter<SourceRecord> timestampConverter = new TimestampConverter.Value<>();
+        timestampConverter.configure(config);
+        converterMap.put("Date", timestampConverter);
+
+        config = new HashMap<>();
+        config.put(TimestampConverter.TARGET_TYPE_CONFIG, "Timestamp");
+        timestampConverter = new TimestampConverter.Value<>();
+        timestampConverter.configure(config);
+        converterMap.put("Timestamp", timestampConverter);
     }
 
     @Override
     public void converterFor(RelationalColumn column,
             ConverterRegistration<SchemaBuilder> registration) {
-        
-        if (columnTypes.contains(column.typeName())) {
-            SchemaBuilder schema = Timestamp.builder();
-            if (alternativeDefaultValue == null)
-                schema = schema.optional().defaultValue(alternativeDefaultValue);
+
+        if (column.typeName().equals("TIMESTAMP") || extraTimestampTypes.contains(column.typeName())) {
+            SchemaBuilder schema = Timestamp.builder().optional().defaultValue(null);
+
             registration.register(schema, value -> {
-                
-                if (debug) LOGGER.info("Received value{}", value);
-                value = (value == null || nullEquivalentValues.contains(value.toString())) ? alternativeDefaultValue
-                        : value.toString();
-                if (value == null) return null;
-                
+
+                if (debug)
+                    LOGGER.info("Received value{}", value);
+
+                if (value == null)
+                    return null;
+
                 SourceRecord record = new SourceRecord(null, null, null, 0, SchemaBuilder.string().schema(),
-                        value);
+                        value.toString());
 
                 SourceRecord convertedRecord = null;
                 Exception exception = null;
@@ -101,8 +118,53 @@ public class DebeziumAllTimestampFieldsToAvroTimestampConverter
                     LOGGER.error("Provided input format are not compatible with data.");
                     throw new DataException(exception);
                 }
-                return convertedRecord.value();
+                java.util.Date result = (java.util.Date) convertedRecord.value();
+                if (result != null && result.getTime() <= 0)
+                    return null;
+                return result;
             });
+        } else if (column.typeName().equals("DATE")) {
+            SchemaBuilder schema = Date.builder().optional().defaultValue(null);
+            registration.register(schema, value -> convertDate(value));
+
+        } else if (column.typeName().equals("DATETIME")) {
+            SchemaBuilder schema = Timestamp.builder().optional().defaultValue(null);
+            registration.register(schema, value -> convertDatetime(value));
+
+        } else {
+            if (debug)
+                LOGGER.info("##########{}", column.typeName());
         }
+    }
+
+    private Object convertDate(Object value) {
+
+        TimestampConverter<SourceRecord> timestampConverter = converterMap.get("Date");
+        if (value instanceof LocalDate)
+            value = java.sql.Date.valueOf((LocalDate) value);
+
+        SourceRecord record = new SourceRecord(null, null, null, 0,
+                Date.builder().optional().defaultValue(null).schema(),
+                value);
+
+        java.util.Date result = (java.util.Date) timestampConverter.apply(record).value();
+        if (result != null && result.getTime() <= 0)
+            return null;
+        return result;
+
+    }
+
+    private Object convertDatetime(Object value) {
+        TimestampConverter<SourceRecord> timestampConverter = converterMap.get("Timestamp");
+        if (value instanceof LocalDateTime)
+            value = java.util.Date.from(((LocalDateTime) value).atZone(ZoneId.systemDefault()).toInstant());
+        SourceRecord record = new SourceRecord(null, null, null, 0,
+                Timestamp.builder().optional().defaultValue(null).schema(),
+                value);
+        java.util.Date result = (java.util.Date) timestampConverter.apply(record).value();
+        if (result != null && result.getTime() <= 0)
+            return null;
+        return result;
+
     }
 }
