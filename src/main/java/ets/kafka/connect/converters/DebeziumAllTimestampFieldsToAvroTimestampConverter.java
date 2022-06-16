@@ -46,6 +46,7 @@ public class DebeziumAllTimestampFieldsToAvroTimestampConverter
                     "No input datetime format provided");
         }
         extraTimestampTypes = Arrays.asList(props.getProperty("extra.timestamp.types", "TIMESTAMP").split(";"));
+        debug = props.getProperty("debug", "false").equals("true");
     
         for (String format : inputFormats) {
             LOGGER.info("configure DebeziumAllTimestampFieldsToAvroTimestampConverter using format {}", format);
