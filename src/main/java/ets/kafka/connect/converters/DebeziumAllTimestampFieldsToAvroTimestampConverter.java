@@ -47,7 +47,7 @@ public class DebeziumAllTimestampFieldsToAvroTimestampConverter
         }
         columnTypes = Arrays.asList(props.getProperty("column.types", "TIMESTAMP").split(";"));
         debug = props.getProperty("debug", "false").equals("true");
-    
+
         for (String format : inputFormats) {
             LOGGER.info("configure DebeziumAllTimestampFieldsToAvroTimestampConverter using format {}", format);
             Map<String, String> config = new HashMap<>();
