@@ -30,7 +30,7 @@ public class DebeziumAllTimestampFieldsToAvroTimestampConverter
     public static final String MYSQL_ZERO_DATETIME = "0000-00-00 00:00:00";
     private List<TimestampConverter<SourceRecord>> converters = new ArrayList<>();
     private Boolean debug;
-    private List<String> extraTimestampTypes = new ArrayList<>();
+    private List<String> columnTypes = new ArrayList<>();
     private final Map<String, TimestampConverter<SourceRecord>> converterMap = new LinkedHashMap<>();
     private static final Logger LOGGER = LoggerFactory
             .getLogger(DebeziumAllTimestampFieldsToAvroTimestampConverter.class);
@@ -45,7 +45,7 @@ public class DebeziumAllTimestampFieldsToAvroTimestampConverter
             throw new ConfigException(
                     "No input datetime format provided");
         }
-        extraTimestampTypes = Arrays.asList(props.getProperty("extra.timestamp.types", "TIMESTAMP").split(";"));
+        columnTypes = Arrays.asList(props.getProperty("column.types", "TIMESTAMP").split(";"));
         debug = props.getProperty("debug", "false").equals("true");
     
         for (String format : inputFormats) {
@@ -75,7 +75,7 @@ public class DebeziumAllTimestampFieldsToAvroTimestampConverter
     public void converterFor(RelationalColumn column,
             ConverterRegistration<SchemaBuilder> registration) {
 
-        if (column.typeName().equals("TIMESTAMP") || extraTimestampTypes.contains(column.typeName())) {
+        if (column.typeName().equals("TIMESTAMP") || columnTypes.contains(column.typeName())) {
             SchemaBuilder schema = Timestamp.builder().optional().defaultValue(null);
             registration.register(schema, value -> convertTimestamp(value));
 

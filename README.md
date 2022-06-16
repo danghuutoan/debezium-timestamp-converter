@@ -15,8 +15,6 @@ To configure this converter all you need to do is add the following lines to you
 "converters": "timestampConverter",
 "timestampConverter.type": "ets.kafka.connect.converters.DebeziumAllTimestampFieldsToAvroTimestampConverter",
 "timestampConverter.input.formats": "yyyy-MM-dd'T'HH:mm'Z';yyyy-MM-dd HH:mm:ss;yyyy-MM-dd'T'HH:mm:ss'Z'",
-"timestampConverter.alternative.default.value": "null",
-"timestampConverter.null.equivalent.values": "1970-01-01T00:00Z;0000-00-00 00:00:00;1970-01-01T00:00:00Z",
 "timestampConverter.debug": "true",
 ```
 # debezium-timestamp-converter
